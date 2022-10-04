@@ -1,0 +1,22 @@
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        type: choice
+        options: [release, pre-release]
+
+name: Create or update repo
+jobs:
+  create_repo:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate GH release with repo assets
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./manage-repo.sh create_repo
