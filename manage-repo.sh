@@ -3,10 +3,13 @@ set -eu
 FORMAT="deb"
 NAME="${FORMAT}-${CHANNEL}"
 TITLE="Jamulus Repo for Debian/Ubuntu (${CHANNEL})"
-GPGHOME="${PWD}/tmp/gpghome"
+GENERATOR_ROOT="${PWD}"
+TMP_ROOT="${PWD}/tmp/"
+
+GPGHOME="${TMP_ROOT}/gpghome"
 GPG_PUBKEY_FILE="key.asc"
 SETUP_SH="setup.sh"
-REPO="${PWD}/tmp/repo"
+REPO="${TMP_ROOT}/repo"
 
 mkdir -p "$REPO"
 
@@ -40,23 +43,15 @@ generate_and_sign_metadata() {
     apt-ftparchive release . > Release
     gpg --homedir "$GPGHOME" --armor --yes --clearsign --output InRelease --detach-sign Release
     gpg --homedir "$GPGHOME" --armor --export > "$GPG_PUBKEY_FILE"
-    cat << EOF > "$SETUP_SH"
-REPO_FILE=/etc/apt/sources.list.d/jamulus-${NAME}.list
-KEY_FILE=/etc/apt/trusted.gpg.d/jamulus-${NAME}.asc
-echo "Setting up Jamulus repo at \${REPO_FILE}..."
-echo 'deb https://github.com/${GITHUB_REPOSITORY}/releases/download/${NAME} ./' > \${REPO_FILE}
-echo "Installing Jamulus GPG key at \${KEY_FILE}..."
-curl -sLo "\${KEY_FILE}" https://github.com/${GITHUB_REPOSITORY}/releases/download/${NAME}/key.asc
-echo "Runnign apt update..."
-apt -qq update
-echo "You should now be able to install a full Jamulus package via"
-echo "  apt install jamulus"
-echo "or a server-only, dependency-reduced build via"
-echo "  apt install jamulus-headless"
-echo
-echo "This package will automatically be updated when you perform system updates."
-EOF
 
+    # Generate setup.sh file
+    cp "${GENERATOR_ROOT}/setup_base.sh.template" "${TMP_ROOT}/setup_tmp.sh"
+
+    # Use '#' as delimiter to avoid '/' ambiguities in sed
+    sed -i "s#~§{R_NAME}§~#${NAME//#/\\#}#g" "${TMP_ROOT}/setup_tmp.sh"
+    sed -i "s#~§{R_GITHUB_REPOSITORY}§~#${GITHUB_REPOSITORY//#/\\#}#g" "${TMP_ROOT}/setup_tmp.sh"
+    mv "${TMP_ROOT}/setup_tmp.sh" "${SETUP_SH}"
+    chmod +x ${SETUP_SH}
 }
 
 replace_github_release_metadata_assets() {
