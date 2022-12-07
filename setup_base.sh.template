@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# This script installs a Jamulus repository to debian based systems
+# This script installs a Jamulus repository to Debian based systems
+
+if [[ $EUID -ne 0 ]]; then
+   echo "Error: This script must be run as root. Try to prepend sudo." 
+   exit 1
+fi
 
 REPO_FILE=/etc/apt/sources.list.d/jamulus-~§{R_NAME}§~.list
 KEY_FILE=/etc/apt/trusted.gpg.d/jamulus-~§{R_NAME}§~.asc
