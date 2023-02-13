@@ -44,14 +44,10 @@ generate_and_sign_metadata() {
     gpg --homedir "$GPGHOME" --armor --yes --clearsign --output InRelease --detach-sign Release
     gpg --homedir "$GPGHOME" --armor --export > "$GPG_PUBKEY_FILE"
 
-    # Generate setup.sh file
-    cp "${GENERATOR_ROOT}/setup_base.sh.template" "${TMP_ROOT}/setup_tmp.sh"
-
-    # Use '#' as delimiter to avoid '/' ambiguities in sed
-    sed -i "s#~§{R_NAME}§~#${NAME//#/\\#}#g" "${TMP_ROOT}/setup_tmp.sh"
-    sed -i "s#~§{R_GITHUB_REPOSITORY}§~#${GITHUB_REPOSITORY//#/\\#}#g" "${TMP_ROOT}/setup_tmp.sh"
-    mv "${TMP_ROOT}/setup_tmp.sh" "${SETUP_SH}"
-    chmod +x ${SETUP_SH}
+    # Create setup.sh file. Use envsubst to replace repository information in template file 
+    NAME="$NAME" GITHUB_REPOSITORY="$GITHUB_REPOSITORY" envsubst '$NAME $GITHUB_REPOSITORY' < "${GENERATOR_ROOT}/setup_base.sh.template" > "${SETUP_SH}"
+    
+    chmod +x "${SETUP_SH}"
 }
 
 replace_github_release_metadata_assets() {

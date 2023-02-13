@@ -7,13 +7,13 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-REPO_FILE=/etc/apt/sources.list.d/jamulus-~§{R_NAME}§~.list
-KEY_FILE=/etc/apt/trusted.gpg.d/jamulus-~§{R_NAME}§~.asc
+REPO_FILE=/etc/apt/sources.list.d/jamulus-${NAME}.list
+KEY_FILE=/etc/apt/trusted.gpg.d/jamulus-${NAME}.asc
 
 echo "Setting up Jamulus repo at ${REPO_FILE}..."
-echo 'deb https://github.com/~§{R_GITHUB_REPOSITORY}§~/releases/download/~§{R_NAME}§~ ./' > ${REPO_FILE}
+echo "deb https://github.com/${GITHUB_REPOSITORY}/releases/download/${NAME} ./" > ${REPO_FILE}
 echo "Installing Jamulus GPG key at ${KEY_FILE}..."
-curl -sLo "${KEY_FILE}" https://github.com/~§{R_GITHUB_REPOSITORY}§~/releases/download/~§{R_NAME}§~/key.asc
+curl -sLo "${KEY_FILE}" https://github.com/${GITHUB_REPOSITORY}/releases/download/${NAME}/key.asc
 echo "Running apt update..."
 apt -qq update
 echo "You should now be able to install a full Jamulus package via"
